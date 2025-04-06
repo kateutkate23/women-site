@@ -1,13 +1,16 @@
 from datetime import datetime
 
 from django.http import HttpResponse, HttpResponseNotFound
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
 
-# request = HttpRequest
 def index(request):
-    return HttpResponse('Main page of application.')
+    return render(request, 'women/index.html')
+
+
+def about(request):
+    return render(request, 'women/about.html')
 
 
 def categories(request, category_id):
