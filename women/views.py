@@ -4,13 +4,30 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+menu = ['О сайте', 'Добавить статью', 'Обратная связь', 'Войти']
+
+
+class MyClass:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
 
 def index(request):
-    return render(request, 'women/index.html')
+    data = {
+        'title': 'Главная страница',
+        'menu': menu,
+        'float': 3.14,
+        'lst': [1, 2, 3, 'adf', True],
+        'set': {1, 2, 2, 3, 4, 4, 5},
+        'dct': {'k1': 'v1', 'k2': 'v2'},
+        'obj': MyClass(10, 20)
+    }
+    return render(request, 'women/index.html', context=data)
 
 
 def about(request):
-    return render(request, 'women/about.html')
+    return render(request, 'women/about.html', {'title': 'О сайте'})
 
 
 def categories(request, category_id):
