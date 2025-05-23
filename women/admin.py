@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.core.checks import messages
+from django.utils.safestring import mark_safe
 
 from .models import Women, Category
 
@@ -23,7 +24,7 @@ class MarriedFilter(admin.SimpleListFilter):
 
 @admin.register(Women)
 class WomenAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'created_at', 'is_published', 'category', 'brief_info')
+    list_display = ('id', 'title', 'post_photo', 'created_at', 'is_published', 'category')
     list_display_links = ('id', 'title')
     list_editable = ('is_published',)
     list_per_page = 10
@@ -32,14 +33,16 @@ class WomenAdmin(admin.ModelAdmin):
     actions = ('publish', 'unpublish')
     search_fields = ('title', 'category__name')
 
-    fields = ('title', 'slug', 'content', 'category', 'husband', 'tags')
+    fields = ('title', 'slug', 'content', 'photo', 'category', 'husband', 'tags')
     prepopulated_fields = {"slug": ("title",)}
 
     filter_horizontal = ('tags',)
 
-    @admin.display(description='Краткое описание')
-    def brief_info(self, women: Women):
-        return f"Статья содержит символов: {len(women.content)}"
+    @admin.display(description='Изображение')
+    def post_photo(self, women: Women):
+        if women.photo:
+            return mark_safe(f"<img src='{women.photo.url}' width=50>")
+        return "Без фото"
 
     @admin.action(description='Опубликовать выбранные записи')
     def publish(self, request, queryset):

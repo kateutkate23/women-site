@@ -1,7 +1,10 @@
-from django.http import HttpResponse, HttpResponseNotFound
-from django.shortcuts import render, get_object_or_404
+import uuid
 
-from women.models import Women, Category, TagPost
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import render, get_object_or_404, redirect
+
+from women.forms import AddPostForm, UploadFileForm
+from women.models import Women, Category, TagPost, UploadFiles
 
 menu = [
     {'title': "О сайте", 'url_name': 'about'},
@@ -23,8 +26,30 @@ def index(request):
     return render(request, 'women/index.html', context=data)
 
 
+def handle_uploaded_file(f):
+    name = f.name
+    ext = ''
+
+    if '.' in name:
+        ext = name[name.rindex('.'):]
+        name = name[:name.rindex('.')]
+
+    suffix = str(uuid.uuid4())
+    with open(f"uploads/{name}_{suffix}{ext}", "wb+") as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
 def about(request):
-    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu})
+    if request.method == "POST":
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            fp = UploadFiles(file=form.cleaned_data['file'])
+            fp.save()
+    else:
+        form = UploadFileForm()
+
+    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu, 'form': form})
 
 
 def show_post(request, post_slug):
@@ -40,8 +65,17 @@ def show_post(request, post_slug):
     return render(request, 'women/post.html', data)
 
 
-def addpage(request):
-    return HttpResponse('Добавление статьи')
+def add_page(request):
+    if request.method == 'POST':
+        form = AddPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = AddPostForm()
+
+    return render(request, 'women/add_page.html',
+                  {'menu': menu, 'title': 'Добавление статьи', 'form': form})
 
 
 def contact(request):
